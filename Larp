@@ -1,0 +1,98 @@
+--[[\
+    Module: Ryna Larp (Accessory ID Injector)
+    Target: Solara V3
+]]--
+
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local InsertService = game:GetService("InsertService")
+local LocalPlayer = Players.LocalPlayer
+
+if CoreGui:FindFirstChild("RynaLarpModuleUI") then
+    CoreGui.RynaLarpModuleUI:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "RynaLarpModuleUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = CoreGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 320, 0, 180)
+MainFrame.Position = UDim2.new(0.5, -160, 0.5, -90)
+MainFrame.BackgroundColor3 = Color3.fromRGB(16, 18, 26)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(60, 70, 255)
+UIStroke.Thickness = 1.5
+UIStroke.Parent = MainFrame
+
+local TextBox = Instance.new("TextBox")
+TextBox.Size = UDim2.new(1, -30, 0, 38)
+TextBox.Position = UDim2.new(0, 15, 0, 25)
+TextBox.BackgroundColor3 = Color3.fromRGB(24, 28, 40)
+TextBox.BorderSizePixel = 0
+TextBox.Font = Enum.Font.GothamMedium
+TextBox.PlaceholderText = "Enter Accessory ID..."
+TextBox.Text = "114421272"
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.TextSize = 12
+TextBox.Parent = MainFrame
+
+local TextCorner = Instance.new("UICorner")
+TextCorner.CornerRadius = UDim.new(0, 6)
+TextCorner.Parent = TextBox
+
+local EquipBtn = Instance.new("TextButton")
+EquipBtn.Size = UDim2.new(1, -30, 0, 40)
+EquipBtn.Position = UDim2.new(0, 15, 0, 75)
+EquipBtn.BackgroundColor3 = Color3.fromRGB(60, 70, 255)
+EquipBtn.Font = Enum.Font.GothamBold
+EquipBtn.Text = "EQUIP ASSET"
+EquipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+EquipBtn.TextSize = 12
+EquipBtn.Parent = MainFrame
+
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 6)
+BtnCorner.Parent = EquipBtn
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(1, -30, 0, 30)
+CloseBtn.Position = UDim2.new(0, 15, 0, 125)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(180, 45, 45)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Text = "CLOSE MODUL"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 11
+CloseBtn.Parent = MainFrame
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseBtn
+
+EquipBtn.MouseButton1Click:Connect(function()
+    local id = tonumber(TextBox.Text)
+    if not id then return end
+    local char = LocalPlayer.Character
+    if char then
+        pcall(function()
+            local asset = InsertService:LoadAsset(id)
+            for _, item in ipairs(asset:GetChildren()) do
+                if item:IsA("Accessory") then
+                    item.Parent = char
+                end
+            end
+        end)
+    end
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
