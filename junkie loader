@@ -1,0 +1,123 @@
+--[[\
+    Ryna Larp - Master Loader Hub
+    Target: Solara V3 Executor
+]]--
+
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+-- Cleanup Hub lama
+if CoreGui:FindFirstChild("RynaLarpHubUI") then
+    CoreGui.RynaLarpHubUI:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "RynaLarpHubUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = CoreGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 360, 0, 280)
+MainFrame.Position = UDim2.new(0.5, -180, 0.5, -140)
+MainFrame.BackgroundColor3 = Color3.fromRGB(14, 16, 22)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(45, 50, 70)
+UIStroke.Thickness = 1.5
+UIStroke.Parent = MainFrame
+
+-- TopBar & Close
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 36)
+TopBar.BackgroundColor3 = Color3.fromRGB(20, 24, 34)
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainFrame
+
+local TopCorner = Instance.new("UICorner")
+TopCorner.CornerRadius = UDim.new(0, 10)
+TopCorner.Parent = TopBar
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -50, 1, 0)
+Title.Position = UDim2.new(0, 12, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Font = Enum.Font.GothamBold
+Title.Text = "Ryna Larp // Loader Hub"
+Title.TextColor3 = Color3.fromRGB(220, 225, 245)
+Title.TextSize = 12
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TopBar
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 24, 0, 24)
+CloseBtn.Position = UDim2.new(1, -30, 0.5, -12)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(180, 45, 45)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 10
+CloseBtn.Parent = TopBar
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseBtn
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Container List Menu
+local Container = Instance.new("ScrollingFrame")
+Container.Size = UDim2.new(1, -20, 1, -50)
+Container.Position = UDim2.new(0, 10, 0, 42)
+Container.BackgroundTransparency = 1
+Container.BorderSizePixel = 0
+Container.CanvasSize = UDim2.new(0, 0, 0, 0)
+Container.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Container.Parent = MainFrame
+
+local Layout = Instance.new("UIListLayout")
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
+Layout.Padding = UDim.new(0, 8)
+Layout.Parent = Container
+
+local function addScriptButton(name, rawUrl)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 38)
+    btn.BackgroundColor3 = Color3.fromRGB(22, 26, 36)
+    btn.Font = Enum.Font.GothamMedium
+    btn.Text = "Load: " .. name
+    btn.TextColor3 = Color3.fromRGB(200, 205, 225)
+    btn.TextSize = 12
+    btn.Parent = Container
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = btn
+    
+    btn.MouseButton1Click:Connect(function()
+        local success, err = pcall(function()
+            loadstring(game:HttpGet(rawUrl))()
+        end)
+        if not success then
+            warn("[J] Failed to load module " .. name .. ": " .. tostring(err))
+        end
+    end)
+end
+
+local baseUrl = "https://raw.githubusercontent.com/Fahry44/RynaLarp/refs/heads/main/"
+
+addScriptButton("Ryna Larp (Accessory Suite)", baseUrl .. "Larp")
+addScriptButton("Als Module", baseUrl .. "als")
+addScriptButton("Arx Module", baseUrl .. "arx")
+addScriptButton("Fishit Module", baseUrl .. "fishit")
+addScriptButton("Ts2 Module", baseUrl .. "ts2")
+
+print("[J] Ryna Larp Loader Hub Initialized.")
