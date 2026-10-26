@@ -1,20 +1,14 @@
---[[\
-    Ryna Larp - Auto Game Detector & Loader
-    Target Environment: Solara V3 Executor
-]]--
-
 if not game:IsLoaded() then 
     game.Loaded:Wait() 
 end
 
 task.wait(math.random())
 
--- Tabel pemetaan game berdasarkan CreatorId asli yang aktif
 local games = {
-    [15009415] = 'https://cdn.authguard.org/virtual-file/8550d34f9565403f9e6733bf3048767c', -- arx / luckyblock
-    [121864768012064] = 'https://raw.githubusercontent.com/youngboyfan/ybhub/refs/heads/main/fishit', -- fishit
-    [32740991] = 'https://cdn.authguard.org/virtual-file/7b7d0818108f4263a8ab0be2d39ac80c', -- typesoul / ts
-    [4372130] = 'https://api.jnkie.com/api/v1/luascripts/public/31af103a8b05017cfac98e6297bd4cf99d86b4cc94a1861631809d34d814326c/download', -- blox
+    [15009415] = 'https://cdn.authguard.org/virtual-file/8550d34f9565403f9e6733bf3048767c', 
+    [121864768012064] = 'https://raw.githubusercontent.com/youngboyfan/ybhub/refs/heads/main/fishit', 
+    [32740991] = 'https://cdn.authguard.org/virtual-file/7b7d0818108f4263a8ab0be2d39ac80c', 
+    [4372130] = 'https://api.jnkie.com/api/v1/luascripts/public/31af103a8b05017cfac98e6297bd4cf99d86b4cc94a1861631809d34d814326c/download', 
 }
 
 if games[game.CreatorId] then
@@ -26,5 +20,5 @@ if games[game.CreatorId] then
         warn("[J] Failed to execute target script: " .. tostring(err))
     end
 else
-    print("[J] Current Game CreatorId (" .. tostring(game.CreatorId) .. ") is not mapped in Ryna Larp loader.")
+    print("[J] Current Game CreatorId (" .. tostring(game.CreatorId) .. ") is not mapped.")
 end
