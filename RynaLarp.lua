@@ -1,18 +1,15 @@
 --[[\
-    Project RynaLarp v1.0 - Client-Side Avatar Customization Suite
+    Project RynaLarp v1.1 - Fixed Client-Side Suite
     Target Environment: Solara V3 Executor (Luau)
-    Execution: Single-File Loadstring Architecture
 ]]--
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
-local InsertService = game:GetService("InsertService")
 
 local LocalPlayer = Players.LocalPlayer
 
--- Cleanup UI lama jika ada
 if CoreGui:FindFirstChild("RynaLarpUI") then
     CoreGui.RynaLarpUI:Destroy()
 end
@@ -23,27 +20,18 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Parent = CoreGui
 
--- State Management
 local activeStates = {
     HeadlessSelf = false,
     HeadlessAll = false,
     KorbloxSelf = false,
     KorbloxAll = false,
-    Accessories = {}
 }
 
-local accessoryCatalog = {
-    ["8-Bit Royal Crown"] = 114421272,
-    ["Fiery Horns"] = 13919316,
-    ["Frozen Horns"] = 14354243,
-    ["Black Iron Horns"] = 11442145
-}
-
--- === UI CONTAINER ===
+-- UI Container & Layout Setup
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 480, 0, 360)
-MainFrame.Position = UDim2.new(0.5, -240, 0.5, -180)
+MainFrame.Size = UDim2.new(0, 480, 0, 340)
+MainFrame.Position = UDim2.new(0.5, -240, 0.5, -170)
 MainFrame.BackgroundColor3 = Color3.fromRGB(16, 18, 26)
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
@@ -58,7 +46,6 @@ UIStroke.Color = Color3.fromRGB(45, 50, 75)
 UIStroke.Thickness = 1.5
 UIStroke.Parent = MainFrame
 
--- TopBar (Draggable)
 local TopBar = Instance.new("Frame")
 TopBar.Size = UDim2.new(1, 0, 0, 42)
 TopBar.BackgroundColor3 = Color3.fromRGB(22, 26, 36)
@@ -74,13 +61,13 @@ TitleLabel.Size = UDim2.new(1, -20, 1, 0)
 TitleLabel.Position = UDim2.new(0, 15, 0, 0)
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.Text = "RYNALARP // SOLARA V3 SUITE"
+TitleLabel.Text = "RYNALARP // SOLARA V3 PATCH"
 TitleLabel.TextColor3 = Color3.fromRGB(230, 235, 255)
 TitleLabel.TextSize = 13
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.Parent = TopBar
 
--- Dragging Logic
+-- Draggable Logic
 local dragging, dragInput, dragStart, startPos
 TopBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -108,7 +95,6 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- === TAB SYSTEM ===
 local ContentContainer = Instance.new("Folder")
 ContentContainer.Parent = MainFrame
 
@@ -134,18 +120,20 @@ local function createPanel(name)
 end
 
 local panelMods = createPanel("Mods")
-local panelAccessories = createPanel("Accessories")
 local panelSettings = createPanel("Settings")
 
--- === LOGIC CORE ===
+-- Fixed Headless Logic for Dynamic Heads
 local function applyHeadless(character, state)
     if not character then return end
     local head = character:FindFirstChild("Head")
     if head then
         head.Transparency = state and 1 or 0
-        local face = head:FindFirstChildOfClass("Decal")
-        if face then
-            face.Transparency = state and 1 or 0
+        for _, child in ipairs(head:GetChildren()) do
+            if child:IsA("Decal") or child:IsA("SpecialMesh") or child:IsA("SurfaceAppearance") then
+                child.Transparency = state and 1 or 0
+            elseif child:IsA("Accessory") or child:IsA("Model") then
+                child.Transparency = state and 1 or 0
+            end
         end
     end
 end
@@ -155,6 +143,7 @@ local function applyKorblox(character, state)
     local rightLeg = character:FindFirstChild("RightLowerLeg") or character:FindFirstChild("Right Leg")
     if rightLeg and rightLeg:IsA("MeshPart") then
         rightLeg.MeshId = state and "rbxassetid://90114275" or ""
+        rightLeg.Transparency = state and 1 or 0
     end
 end
 
@@ -173,7 +162,6 @@ local function updateTargets()
     end
 end
 
--- === UI BUILDERS ===
 local function createToggle(parent, title, callback)
     local container = Instance.new("Frame")
     container.Size = UDim2.new(1, 0, 0, 42)
@@ -231,7 +219,6 @@ local function createToggle(parent, title, callback)
     end)
 end
 
--- Populate Panel Mods
 createToggle(panelMods, "Headless (Self)", function(state)
     activeStates.HeadlessSelf = state
     updateTargets()
@@ -252,34 +239,6 @@ createToggle(panelMods, "Korblox (All Players - Local)", function(state)
     updateTargets()
 end)
 
--- Populate Panel Accessories
-for name, id in pairs(accessoryCatalog) do
-    createToggle(panelAccessories, "Equip: " .. name, function(state)
-        activeStates.Accessories[name] = state
-        local char = LocalPlayer.Character
-        if not char then return end
-        
-        if state then
-            pcall(function()
-                local asset = InsertService:LoadAsset(id)
-                for _, item in ipairs(asset:GetChildren()) do
-                    if item:IsA("Accessory") then
-                        item.Name = "RynaLarpItem_" .. name
-                        item.Parent = char
-                    end
-                end
-            end)
-        else
-            for _, item in ipairs(char:GetChildren()) do
-                if item.Name == "RynaLarpItem_" .. name then
-                    item:Destroy()
-                end
-            end
-        end
-    end)
-end
-
--- Settings Panel (Reset)
 local resetBtn = Instance.new("TextButton")
 resetBtn.Size = UDim2.new(1, 0, 0, 40)
 resetBtn.BackgroundColor3 = Color3.fromRGB(180, 45, 45)
@@ -298,21 +257,14 @@ resetBtn.MouseButton1Click:Connect(function()
     activeStates.HeadlessAll = false
     activeStates.KorbloxSelf = false
     activeStates.KorbloxAll = false
-    activeStates.Accessories = {}
     
     local char = LocalPlayer.Character
     if char then
         applyHeadless(char, false)
         applyKorblox(char, false)
-        for _, item in ipairs(char:GetChildren()) do
-            if item.Name:sub(1, 13) == "RynaLarpItem_" then
-                item:Destroy()
-            end
-        end
     end
 end)
 
--- === NAVIGATION TABS ===
 local TabBar = Instance.new("Frame")
 TabBar.Size = UDim2.new(1, -20, 0, 30)
 TabBar.Position = UDim2.new(0, 10, 0, 48)
@@ -327,7 +279,7 @@ TabListLayout.Parent = TabBar
 
 local function createTabButton(name, panel)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.32, 0, 1, 0)
+    btn.Size = UDim2.new(0.48, 0, 1, 0)
     btn.BackgroundColor3 = Color3.fromRGB(24, 28, 40)
     btn.Font = Enum.Font.GothamMedium
     btn.Text = name
@@ -341,24 +293,18 @@ local function createTabButton(name, panel)
     
     btn.MouseButton1Click:Connect(function()
         panelMods.Visible = false
-        panelAccessories.Visible = false
         panelSettings.Visible = false
-        
         panel.Visible = true
     end)
 end
 
 createTabButton("Modifications", panelMods)
-createTabButton("Accessories", panelAccessories)
 createTabButton("Settings", panelSettings)
 panelMods.Visible = true
 
--- Handle Respawns
 LocalPlayer.CharacterAdded:Connect(function(char)
     task.wait(1)
-    if activeStates.HeadlessSelf or activeStates.HeadlessAll then
-        updateTargets()
-    end
+    updateTargets()
 end)
 
-print("[J] RynaLarp UI Loaded via Solara V3.")
+print("[J] RynaLarp v1.1 Patched & Loaded.")
