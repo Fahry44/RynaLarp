@@ -1,5 +1,5 @@
 --[[\
-    Project RynaLarp v1.1 - Fixed Client-Side Suite
+    Project RynaLarp v1.2 - Client-Side Suite with Close/Cleanup Trigger
     Target Environment: Solara V3 Executor (Luau)
 ]]--
 
@@ -10,6 +10,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local LocalPlayer = Players.LocalPlayer
 
+-- Cleanup UI lama jika ada
 if CoreGui:FindFirstChild("RynaLarpUI") then
     CoreGui.RynaLarpUI:Destroy()
 end
@@ -27,7 +28,66 @@ local activeStates = {
     KorbloxAll = false,
 }
 
--- UI Container & Layout Setup
+-- === LOGIC KONTROL & RESET ===
+local function applyHeadless(character, state)
+    if not character then return end
+    local head = character:FindFirstChild("Head")
+    if head then
+        head.Transparency = state and 1 or 0
+        for _, child in ipairs(head:GetChildren()) do
+            if child:IsA("Decal") or child:IsA("SpecialMesh") or child:IsA("SurfaceAppearance") then
+                child.Transparency = state and 1 or 0
+            elseif child:IsA("Accessory") or child:IsA("Model") then
+                child.Transparency = state and 1 or 0
+            end
+        end
+    end
+end
+
+local function applyKorblox(character, state)
+    if not character then return end
+    local rightLeg = character:FindFirstChild("RightLowerLeg") or character:FindFirstChild("Right Leg")
+    if rightLeg and rightLeg:IsA("MeshPart") then
+        rightLeg.MeshId = state and "rbxassetid://90114275" or ""
+        rightLeg.Transparency = state and 1 or 0
+    end
+end
+
+local function updateTargets()
+    for _, player in ipairs(Players:GetPlayers()) do
+        local char = player.Character
+        if char then
+            if player == LocalPlayer then
+                applyHeadless(char, activeStates.HeadlessSelf)
+                applyKorblox(char, activeStates.KorbloxSelf)
+            else
+                applyHeadless(char, activeStates.HeadlessAll)
+                applyKorblox(char, activeStates.KorbloxAll)
+            end
+        end
+    end
+end
+
+local function fullResetAndClose()
+    -- Kembalikan avatar ke kondisi normal
+    activeStates.HeadlessSelf = false
+    activeStates.HeadlessAll = false
+    activeStates.KorbloxSelf = false
+    activeStates.KorbloxAll = false
+    
+    local char = LocalPlayer.Character
+    if char then
+        applyHeadless(char, false)
+        applyKorblox(char, false)
+    end
+    
+    -- Hapus total GUI dari layar
+    if ScreenGui then
+        ScreenGui:Destroy()
+    end
+end
+
+-- === UI CONTAINER ===
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 480, 0, 340)
@@ -46,6 +106,7 @@ UIStroke.Color = Color3.fromRGB(45, 50, 75)
 UIStroke.Thickness = 1.5
 UIStroke.Parent = MainFrame
 
+-- TopBar
 local TopBar = Instance.new("Frame")
 TopBar.Size = UDim2.new(1, 0, 0, 42)
 TopBar.BackgroundColor3 = Color3.fromRGB(22, 26, 36)
@@ -57,15 +118,34 @@ TopBarCorner.CornerRadius = UDim.new(0, 10)
 TopBarCorner.Parent = TopBar
 
 local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Size = UDim2.new(1, -20, 1, 0)
+TitleLabel.Size = UDim2.new(1, -60, 1, 0)
 TitleLabel.Position = UDim2.new(0, 15, 0, 0)
 TitleLabel.BackgroundTransparency = 1
 TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.Text = "RYNALARP // SOLARA V3 PATCH"
+TitleLabel.Text = "RYNALARP // SOLARA V3"
 TitleLabel.TextColor3 = Color3.fromRGB(230, 235, 255)
 TitleLabel.TextSize = 13
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.Parent = TopBar
+
+-- Tombol Close (X)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -36, 0.5, -15)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(180, 45, 45)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 12
+CloseBtn.Parent = TopBar
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseBtn
+
+CloseBtn.MouseButton1Click:Connect(function()
+    fullResetAndClose()
+end)
 
 -- Draggable Logic
 local dragging, dragInput, dragStart, startPos
@@ -121,46 +201,6 @@ end
 
 local panelMods = createPanel("Mods")
 local panelSettings = createPanel("Settings")
-
--- Fixed Headless Logic for Dynamic Heads
-local function applyHeadless(character, state)
-    if not character then return end
-    local head = character:FindFirstChild("Head")
-    if head then
-        head.Transparency = state and 1 or 0
-        for _, child in ipairs(head:GetChildren()) do
-            if child:IsA("Decal") or child:IsA("SpecialMesh") or child:IsA("SurfaceAppearance") then
-                child.Transparency = state and 1 or 0
-            elseif child:IsA("Accessory") or child:IsA("Model") then
-                child.Transparency = state and 1 or 0
-            end
-        end
-    end
-end
-
-local function applyKorblox(character, state)
-    if not character then return end
-    local rightLeg = character:FindFirstChild("RightLowerLeg") or character:FindFirstChild("Right Leg")
-    if rightLeg and rightLeg:IsA("MeshPart") then
-        rightLeg.MeshId = state and "rbxassetid://90114275" or ""
-        rightLeg.Transparency = state and 1 or 0
-    end
-end
-
-local function updateTargets()
-    for _, player in ipairs(Players:GetPlayers()) do
-        local char = player.Character
-        if char then
-            if player == LocalPlayer then
-                applyHeadless(char, activeStates.HeadlessSelf)
-                applyKorblox(char, activeStates.KorbloxSelf)
-            else
-                applyHeadless(char, activeStates.HeadlessAll)
-                applyKorblox(char, activeStates.KorbloxAll)
-            end
-        end
-    end
-end
 
 local function createToggle(parent, title, callback)
     local container = Instance.new("Frame")
@@ -307,4 +347,4 @@ LocalPlayer.CharacterAdded:Connect(function(char)
     updateTargets()
 end)
 
-print("[J] RynaLarp v1.1 Patched & Loaded.")
+print("[J] RynaLarp v1.2 Loaded with Close Trigger.")
